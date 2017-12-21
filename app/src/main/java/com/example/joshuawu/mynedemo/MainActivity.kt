@@ -11,7 +11,14 @@ import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import com.example.joshuawu.mynedemo.DataModels.MyneLoginPost
+import com.example.joshuawu.mynedemo.DataModels.MyneLoginResponse
+import com.example.joshuawu.mynedemo.RetrofitToolkit.MyneLoginService
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Callback
+import retrofit2.Response
 
 /**
  * Libraries to consider
@@ -40,6 +47,25 @@ class MainActivity : AppCompatActivity() {
 
         _button_login.setOnClickListener{
             login();
+
+            //
+            // TEST CODE - Works, needs modifications
+            //
+            val userLoginObj = MyneLoginPost("practice_user","practice_password")
+
+            val loginAPI = MyneLoginService.create();
+            val result = loginAPI.login(userLoginObj)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({
+                        result ->
+                        Log.d("Result", result.token);
+                    })
+
+            //
+            //
+            //
+
         }
     }
 
@@ -107,6 +133,9 @@ class MainActivity : AppCompatActivity() {
         _button_login.isEnabled = true;
     }
 
+    /**
+     * Performs check on valid inputs
+     */
     private fun validated(): Boolean{
 
         var _text_user_name = findViewById<EditText>(R.id.et_user_name)
