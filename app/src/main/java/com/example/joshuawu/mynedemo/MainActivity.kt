@@ -17,6 +17,7 @@ import com.example.joshuawu.mynedemo.RetrofitToolkit.MyneLoginService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
@@ -51,16 +52,6 @@ class MainActivity : AppCompatActivity() {
             //
             // TEST CODE - Works, needs modifications
             //
-            val userLoginObj = MyneLoginPost("practice_user","practice_password")
-
-            val loginAPI = MyneLoginService.create();
-            val result = loginAPI.login(userLoginObj)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.io())
-                    .subscribe({
-                        result ->
-                        Log.d("Result", result.token);
-                    })
 
             //
             //
@@ -85,20 +76,43 @@ class MainActivity : AppCompatActivity() {
         // Disable the login button
         _button_login.isEnabled = false;
 
+        // Initialize HTTP POST request
+        val userLoginObj = MyneLoginPost(_text_user_name.text.toString(),_text_password.text.toString())
+        val loginAPI = MyneLoginService.create();
+
         // Initialize and show authentication/loading spinner
         val dialog_authProgress = ProgressDialog(this);
         dialog_authProgress.isIndeterminate = true;
         dialog_authProgress.setMessage("Authenticating...")
         // Block UI Interaction
         dialog_authProgress.setCancelable(false)
+
+        // Authentication logic
+        // Send HTTP POST request
+        val result = loginAPI.login(userLoginObj)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({
+                    result ->
+                    Log.d("Result", result.token);
+                    dialog_authProgress.dismiss();
+                    Log.d("Result", "AFTER TOKEN");
+                    onLoginSuccess();
+                })
+
+        fun cancelRequest(){
+            result.dispose();
+        }
         // Add a cancel button to the progress dialog
         dialog_authProgress.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", DialogInterface.OnClickListener(fun(_:DialogInterface,_:Int){
             dialog_authProgress.dismiss()
+            // Close HTTP request
+            cancelRequest();
+            //
             onLoginFailed()
         }))
         dialog_authProgress.show()
 
-        // Authentication logic
 
         // Run on UI thread
         var mHandler: Handler? = null
@@ -108,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                 onLoginSuccess()
 
                 // Login failed
-                dialog_authProgress.dismiss()
+                //dialog_authProgress.dismiss()
                 onLoginFailed()
             }
         }
@@ -121,8 +135,11 @@ class MainActivity : AppCompatActivity() {
 
         _button_login.isEnabled = true;
 
+        // TODO: Go to next page after success
+        //
+
         // Call onDestroy()
-        finish()
+        //finish()
     }
 
     private fun onLoginFailed(){
@@ -151,9 +168,9 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(baseContext, "Enter a valid username", Toast.LENGTH_SHORT).show()
             valid = false
         }
-        if(password.isEmpty() || password.length < 7 || password.length > 15)
+        if(password.isEmpty() || password.length < 7 || password.length > 20)
         {
-            Toast.makeText(baseContext, "Password must be between 7 and 15 alphanumeric characters", Toast.LENGTH_SHORT).show()
+            Toast.makeText(baseContext, "Password must be between 7 and 20 alphanumeric characters", Toast.LENGTH_SHORT).show()
             valid = false
         }
 
