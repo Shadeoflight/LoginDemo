@@ -88,19 +88,33 @@ class MainActivity : AppCompatActivity() {
         dialog_authProgress.setCancelable(false)
 
         // Authentication logic
+        //
+
         // Send HTTP POST request
         val result = loginAPI.login(userLoginObj)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({
                     result ->
-                    Log.d("Result", result.token);
-                    dialog_authProgress.dismiss();
-                    Log.d("Result", "AFTER TOKEN");
-                    onLoginSuccess();
+                    // Do UI stuff with the HTTP request response/result
+                    if(result.success == false)
+                    {
+                        dialog_authProgress.dismiss();
+                        onLoginFailed();
+                    } else {
+                        Log.d("Result", result.token);
+                        dialog_authProgress.dismiss();
+                        Log.d("Result", "AFTER TOKEN");
+                        onLoginSuccess();
+                    }
+                },{
+                    error ->
+                    // Handles HTTP request error
+                    Log.d("Result", error.toString());
                 })
 
         fun cancelRequest(){
+            // Cancel the request
             result.dispose();
         }
         // Add a cancel button to the progress dialog
